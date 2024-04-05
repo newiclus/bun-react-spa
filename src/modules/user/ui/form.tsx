@@ -5,7 +5,8 @@ import { Select, SelectItem } from "@nextui-org/select";
 import { Button } from "@nextui-org/button";
 
 import { cities, states } from "@/data/db";
-import { UserFormProps, User } from "@/modules/user/types";
+import { UserFormProps, User, userSchema } from "@/modules/user/types";
+import { parseZodError } from "@/utils";
 
 const userInputFields = [
   {
@@ -47,6 +48,7 @@ const initialState = {
 
 export function FormUser({ onSubmit, isEdit, defaultValues }: UserFormProps) {
   const [formData, setFormData] = useState<User>(defaultValues || initialState);
+  const [errors, setErrors] = useState<{ [key: string | keyof User]: any }>({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -57,6 +59,13 @@ export function FormUser({ onSubmit, isEdit, defaultValues }: UserFormProps) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const validation = userSchema.safeParse(formData);
+
+    if (!validation.success) {
+      setErrors(parseZodError(validation.error));
+      return;
+    }
+
     onSubmit(formData);
   };
 
@@ -70,6 +79,8 @@ export function FormUser({ onSubmit, isEdit, defaultValues }: UserFormProps) {
             name={name}
             placeholder={placeholder}
             onChange={handleChange}
+            isInvalid={!!errors[name]}
+            errorMessage={errors[name]}
             value={formData[name as keyof User]}
           />
         </div>
@@ -82,6 +93,8 @@ export function FormUser({ onSubmit, isEdit, defaultValues }: UserFormProps) {
           name="state"
           onChange={handleChange}
           defaultSelectedKeys={[formData.state]}
+          isInvalid={!!errors.state}
+          errorMessage={errors.state}
         >
           {states.map((state) => (
             <SelectItem key={state.value} value={state.value}>
@@ -98,6 +111,8 @@ export function FormUser({ onSubmit, isEdit, defaultValues }: UserFormProps) {
           name="city"
           onChange={handleChange}
           defaultSelectedKeys={[formData.city]}
+          isInvalid={!!errors.city}
+          errorMessage={errors.city}
         >
           {cities.map((city) => (
             <SelectItem key={city.value} value={city.value}>
@@ -114,6 +129,8 @@ export function FormUser({ onSubmit, isEdit, defaultValues }: UserFormProps) {
           onValueChange={(value) => setFormData({ ...formData, sex: value })}
           value={formData.sex}
           defaultValue={formData.sex}
+          isInvalid={!!errors.sex}
+          errorMessage={errors.sex}
         >
           <Radio value="M">Male</Radio>
           <Radio value="F">Female</Radio>

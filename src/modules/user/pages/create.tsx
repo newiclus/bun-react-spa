@@ -23,6 +23,7 @@ export default function UserCreate({ isEdit }: { isEdit?: boolean }) {
       formData.id = userId;
       dispatch(update(formData));
     }
+
     navigate("/");
   };
 
